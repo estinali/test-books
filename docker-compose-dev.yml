@@ -1,0 +1,60 @@
+services:
+
+  frontend:
+    container_name: top-books-php_dev
+    build:
+      dockerfile: ./docker/php/Dockerfile-dev
+    env_file:
+      - .env
+    environment:
+      PHP_VALUE: |
+        xdebug.mode=debug
+        xdebug.start_with_request=yes
+        xdebug.client_host=192.168.2.33
+        xdebug.client_port=9003
+        xdebug.idekey=PHPSTORM
+        xdebug.log=/var/log/xdebug.log
+    volumes:
+      - ./:/var/www/html
+      - ./php.ini:/usr/local/etc/php/conf.d/custom.ini
+    depends_on:
+      - mysql
+    networks:
+      - books_network
+
+  nginx:
+    image: nginx:latest
+    container_name: top-books-nginx_dev
+    env_file:
+      - .env
+    ports:
+      - "${APP_HOST_PORT}:80"
+    volumes:
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+      - ./:/var/www/html
+    depends_on:
+      - frontend
+    networks:
+      - books_network
+
+  mysql:
+    image: mysql:8
+    container_name: top-books-mysql_dev
+    env_file:
+      - .env
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+    ports:
+      - "${MYSQL_HOST_PORT}:3306"
+    networks:
+      - books_network
+
+networks:
+  books_network:
+    driver: bridge
+
+volumes:
+  mysql_data:
