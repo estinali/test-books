@@ -56,6 +56,15 @@ class SignupForm extends Model
         $user->generateAuthKey();
         $user->generateEmailVerificationToken();
 
+        try {
+            $auth = Yii::$app->authManager;
+            $permission = $auth->getPermission('crud');
+            $auth->assign($permission, $user->id);
+        } catch (\Throwable $e) {
+            //TODO: logger
+        }
+
+
         return $user->save() && $this->sendEmail($user);
     }
 

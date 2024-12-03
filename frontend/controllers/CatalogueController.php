@@ -2,8 +2,11 @@
 
 namespace frontend\controllers;
 
+use app\models\Author;
 use app\models\Book;
 use app\models\BookSearch;
+use yii\filters\AccessControl;
+use yii\web\BadRequestHttpException;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
@@ -11,7 +14,7 @@ use yii\filters\VerbFilter;
 /**
  * CatalogueController implements the CRUD actions for Book model.
  */
-class CatalogueController extends Controller
+class CatalogueController2 extends Controller
 {
     /**
      * @inheritDoc
@@ -21,12 +24,31 @@ class CatalogueController extends Controller
         return array_merge(
             parent::behaviors(),
             [
-                'verbs' => [
-                    'class' => VerbFilter::className(),
+                'verbs'  => [
+                    'class'   => VerbFilter::className(),
                     'actions' => [
                         'delete' => ['POST'],
                     ],
                 ],
+                'access' => [
+                    'class' => AccessControl::class,
+                    'rules' => [
+                        [
+                            'allow'         => true,
+                            'actions'       => ['view', 'delete', 'update'],
+                            'roles'         => ['@'],
+                            'matchCallback' => function ($rule, $action) {
+                                return \Yii::$app->user->can('crudPermission');
+                            },
+                        ],
+                        [
+                            'allow'   => true,
+                            'actions' => ['index', 'report'],
+                            'roles'   => ['?'],
+                        ],
+                    ],
+                ],
+
             ]
         );
     }
@@ -42,7 +64,7 @@ class CatalogueController extends Controller
         $dataProvider = $searchModel->search($this->request->queryParams);
 
         return $this->render('index', [
-            'searchModel' => $searchModel,
+            'searchModel'  => $searchModel,
             'dataProvider' => $dataProvider,
         ]);
     }
