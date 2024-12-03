@@ -14,7 +14,7 @@ use yii\filters\VerbFilter;
 /**
  * CatalogueController implements the CRUD actions for Book model.
  */
-class CatalogueController2 extends Controller
+class CatalogueController extends Controller
 {
     /**
      * @inheritDoc
@@ -152,5 +152,28 @@ class CatalogueController2 extends Controller
         }
 
         throw new NotFoundHttpException('The requested page does not exist.');
+    }
+
+    public function actionReport()
+    {
+        $year = \Yii::$app->request->get('year');
+
+        if ($year && !preg_match('/^\d{4}$/', $year)) {
+            //TODO: validation on front
+            throw new BadRequestHttpException('Invalid year. Please select a valid 4-digit year.');
+        }
+
+        $authors = Author::getMostPopularAuthors($year);
+
+        return $this->render('report', [
+            'authors' => $authors,
+            'year' => $year,
+        ]);
+
+    }
+
+    public function actionSubscribe()
+    {
+        //TODO: subscription module and db table
     }
 }
